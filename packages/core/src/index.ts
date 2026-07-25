@@ -48,3 +48,8 @@ export { contextualizeChunks, buildContextualizePrompt, CONTEXTUALIZE_INSTRUCTIO
 export type { ContextualizeOptions } from './contextualize';
 export { ingestDocument } from './ingest';
 export type { IngestInput, IngestOptions, IngestDeps, IngestResult } from './ingest';
+
+// ── Retrieval (Phase 1.3) ──
+
+export { retrieve } from './retrieve';
+export type { RetrieveDeps } from './retrieve';

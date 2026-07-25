@@ -64,15 +64,15 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 
 *Goal: single-tenant, self-hostable, genuinely good retrieval, fully observable. This alone beats most RAG repos.* Delivers **Tier A**.
 
-> **Current position (updated):** Phase **1.2 is complete** — the ingestion pipeline in `@lucid-rag/core`: a heading-aware Markdown chunker (fenced-code-aware, ATX + setext headings, exact `[charStart,charEnd)` offsets, sentence-splitting for over-long paragraphs), optional LLM **contextual retrieval** with bounded, fail-fast concurrency, and `ingestDocument` (chunk → contextualize → embed → index) that pins the KB to the embedder, validates embedding dimensions, and performs all fallible work **before** any destructive store mutation (no data-loss window on failed re-ingest). A `DocumentStore` contract carries KB/document lifecycle; `PgVectorStore` implements it. 21 core unit tests, hardened by an adversarial find→verify review (11 confirmed defects fixed, 3 false alarms refuted). **Next up: Phase 1.3** — hybrid retrieval + reranking (dense + sparse → fuse → cross-encoder rerank → top-k, with the full trace).
+> **Current position (updated):** Phase **1.3 is complete** — the retrieval engine `retrieve()` in `@lucid-rag/core`: dense + sparse candidates (run concurrently) → min-max normalize + weighted fusion (keyword / semantic / hybrid, blended by `semanticWeight`) → optional cross-encoder rerank → top-k, all recorded in the multi-stage `RetrievalTrace` (dense / sparse / fused / reranked stages, near-misses, per-stage timings). 30 core unit tests, hardened by an adversarial find→verify review (2 confirmed fixes — normalize over hydratable candidates only, snapshot params into the trace; 6 false alarms refuted). **Next up: Phase 1.4** — grounded generation (numbered sources, inline citations, faithfulness check, provider-agnostic streaming).
 
 | # | Capability | What it means | Status |
 |---|---|---|---|
 | 1.0 | Repo + core contracts | Monorepo, docker-compose, and the shared interfaces (providers, reranker, vector store, trace) | ✅ done |
 | 1.1 | Postgres + pgvector store | Schema + `VectorStore` impl: dense (pgvector) + sparse (full-text) + metadata filter | ✅ done |
 | 1.2 | Ingestion pipeline | Upload/parse → chunk → **contextualize** (LLM situating blurb per chunk) → embed → index | ✅ done |
-| 1.3 | Hybrid retrieval + reranking | Dense + sparse candidates → fuse → **cross-encoder rerank** → top-k, with the full trace | ⬜ **next** |
-| 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ⬜ |
+| 1.3 | Hybrid retrieval + reranking | Dense + sparse candidates → fuse → **cross-encoder rerank** → top-k, with the full trace | ✅ done |
+| 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ⬜ **next** |
 | 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ⬜ |
 | 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ⬜ |
 

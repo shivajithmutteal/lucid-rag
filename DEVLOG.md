@@ -137,6 +137,44 @@ outcome, not the request); `replace:false` "orphans" (that's the literal meaning
 of opting out); and a "createKnowledgeBase isn't idempotent" claim (the real
 store's `ON CONFLICT DO UPDATE` already is).
 
+## Phase 1.3 — Hybrid retrieval + reranking
+
+`retrieve(kbId, query, params, deps)` → `RetrievalTrace`. Dense and sparse
+retrieval run concurrently; each signal is min-max normalized over its
+candidates; they're fused (`keyword` / `semantic` / `hybrid`, blended by
+`semanticWeight`); an optional cross-encoder reranker re-orders the fused
+candidates; then the top-k and the near-misses below it are selected. Every
+stage — dense, sparse, fused, reranked, near-misses, timings — is in the trace.
+
+**Key decisions**
+
+- **Min-max + weighted fusion.** Simple, order-preserving per signal, and keeps
+  fused scores in `[0,1]`. Its known limitation — it discards absolute magnitude,
+  so it can over-credit a lone/weak match — is exactly what the cross-encoder
+  reranker exists to correct. Reciprocal Rank Fusion (RRF) is a candidate upgrade
+  if score-scale robustness ever matters more than simplicity.
+- **The reranker owns relevance; `retrieve` owns the cutoff.** No `topN` is passed
+  to the reranker (it returns the full re-ordering); `retrieve` then takes `topK`
+  and keeps the near-misses — so the glass-box near-miss panel still works with
+  rerank on.
+- **Concurrency + timings.** Dense (embed + vector search) and sparse (full-text)
+  run in parallel, each timed into the trace.
+
+**Review caught (2 confirmed, 6 refuted).**
+
+- 🐛 **Normalization skewed by phantom candidates.** min-max ran over the full hit
+  list, but hits `getChunks` couldn't hydrate were dropped from the output — so a
+  dropped candidate still set the min/max and silently reordered the survivors.
+  → Normalize over hydratable hits only.
+- 🐛 **`trace.params` aliased the caller's object.** A parameter sweep that mutates
+  one `params` object retroactively rewrote every prior trace's record.
+  → Snapshot with `{ ...params }`.
+
+Refuted (correctly): five variants of "min-max fusion over-weights lone/weak
+matches" (a documented property of the chosen algorithm, corrected by the
+reranker — not a bug) and two reranker cases that only trigger on
+contract-violating input.
+
 ---
 
 ## Learnings (reusable across the project)
@@ -162,9 +200,14 @@ store's `ON CONFLICT DO UPDATE` already is).
 - **TypeScript control-flow gotcha:** a `let` mutated *only* inside a closure
   keeps its initializer's narrowed type in the outer scope. Assign it inline
   (or re-read via the declared type) so narrowing stays correct.
-- **The adversarial verify step matters.** Of 14 raised findings this session, 3
-  were refuted on inspection — a plain "reviewer found X" list would have sent us
-  to fix non-bugs. Making a skeptic try to *refute* each finding keeps the
+- **The adversarial verify step matters — and a "documented tradeoff" is not a
+  bug.** Across the phase reviews a large share of raised findings were *refuted*
+  on inspection. The clearest case: five separate reviewers flagged min-max
+  fusion for over-crediting weak/lone matches — but that's an inherent, documented
+  property of the algorithm (the reranker is the intended relevance corrector),
+  not a defect. A plain "reviewer found X" list would have triggered an
+  unnecessary fusion-algorithm rewrite. Making a skeptic try to *refute* each
+  finding — and separating a real bug from a design tradeoff — is what keeps the
   signal high.
 
 ## Status
@@ -174,8 +217,8 @@ store's `ON CONFLICT DO UPDATE` already is).
 | 1.0 Contracts | ✅ |
 | 1.1 Postgres + pgvector store | ✅ |
 | 1.2 Ingestion pipeline | ✅ |
-| 1.3 Hybrid retrieval + reranking | 🔧 in progress |
-| 1.4 Grounded generation | ⬜ |
+| 1.3 Hybrid retrieval + reranking | ✅ |
+| 1.4 Grounded generation | 🔧 next |
 | 1.5 Evaluation harness | ⬜ |
 | 1.6 Web app + self-host | ⬜ |
 
