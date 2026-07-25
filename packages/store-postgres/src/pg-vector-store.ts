@@ -2,7 +2,10 @@ import * as pg from 'pg';
 import type { Pool } from 'pg';
 import type {
   Chunk,
+  DocumentInput,
+  DocumentStore,
   KnowledgeBase,
+  KnowledgeBaseInput,
   MetadataFilter,
   MetadataValue,
   SourceDocument,
@@ -25,7 +28,7 @@ export type PgVectorStoreConfig = string | Pool;
  * layer needs (foreign keys require the parent rows to exist before chunks are
  * upserted).
  */
-export class PgVectorStore implements VectorStore {
+export class PgVectorStore implements VectorStore, DocumentStore {
   private readonly pool: Pool;
   private readonly ownsPool: boolean;
 
@@ -53,12 +56,7 @@ export class PgVectorStore implements VectorStore {
   // (Beyond the VectorStore interface; the ingestion pipeline in Phase 1.2 uses
   //  these. Kept here so the store is self-contained and independently testable.)
 
-  async createKnowledgeBase(kb: {
-    id: string;
-    name: string;
-    embeddingModel: string;
-    embeddingDims: number;
-  }): Promise<KnowledgeBase> {
+  async createKnowledgeBase(kb: KnowledgeBaseInput): Promise<KnowledgeBase> {
     const { rows } = await this.pool.query(
       `INSERT INTO knowledge_base (id, name, embedding_model, embedding_dims)
        VALUES ($1, $2, $3, $4)
@@ -86,14 +84,7 @@ export class PgVectorStore implements VectorStore {
     await this.pool.query('DELETE FROM knowledge_base WHERE id = $1', [id]);
   }
 
-  async upsertDocument(doc: {
-    id: string;
-    knowledgeBaseId: string;
-    title: string;
-    uri?: string;
-    mimeType?: string;
-    metadata?: Record<string, MetadataValue>;
-  }): Promise<SourceDocument> {
+  async upsertDocument(doc: DocumentInput): Promise<SourceDocument> {
     const { rows } = await this.pool.query(
       `INSERT INTO document (id, knowledge_base_id, title, uri, mime_type, metadata)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb)
