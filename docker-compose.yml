@@ -1,0 +1,23 @@
+# Self-host storage. `docker compose up -d db` starts Postgres with the pgvector
+# extension available. The app service is added in Phase 1.6 (the web tier); for
+# now this gives the database the rest of the pipeline builds against.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: lucid-rag-db
+    environment:
+      POSTGRES_USER: lucid
+      POSTGRES_PASSWORD: lucid
+      POSTGRES_DB: lucid
+    ports:
+      - "5432:5432"
+    volumes:
+      - lucid_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lucid -d lucid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lucid_pgdata:

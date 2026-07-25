@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# test / coverage
+coverage/
+
+# env & secrets — never commit keys
+.env
+.env.*
+!.env.example
+
+# local data (uploaded documents, model caches)
+data/
+uploads/
+.cache/
+.models/
+
+# database volume (if bind-mounted locally)
+pgdata/
+
+# logs & os
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,25 @@
+{
+  "name": "@lucid-rag/store-postgres",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Postgres + pgvector implementation of the lucid-rag VectorStore: dense vector search, sparse full-text search, and metadata filtering in one database.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lucid-rag/core": "*",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}
