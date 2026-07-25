@@ -175,6 +175,36 @@ matches" (a documented property of the chosen algorithm, corrected by the
 reranker — not a bug) and two reranker cases that only trigger on
 contract-violating input.
 
+## Phase 1.4 — Grounded generation
+
+`answerQuestion(trace, deps, options)` → `Answer`. Builds a numbered-source prompt
+from `trace.results`, generates (streaming, provider-agnostic), extracts `[n]`
+citations deterministically, optionally runs a faithfulness check, and returns the
+answer with the exact prompt and trace attached. Full plan + reasoning in
+[docs/grounded-generation.md](docs/grounded-generation.md).
+
+**Key decisions:** consume a trace (don't re-retrieve); deterministic `[n]`
+citation parsing (no extra LLM call); faithfulness as an optional second pass,
+fail-closed on ambiguity; no-sources short-circuit (honest answer, no wasted call).
+
+**Review caught (5 confirmed, 5 refuted, 1 split → adjudicated).**
+
+- 🐛 **Fail-OPEN in the safety guard.** `parseClaimVerdicts` *dropped* malformed
+  claim entries, shrinking the denominator so a mangled "unsupported" verdict
+  *raised* the score — a partly-hallucinated answer could pass. → Keep every claim,
+  coerce loose booleans, count ambiguous as unsupported (fail-closed *per claim*).
+- 🐛 **Greedy JSON match** threw away a valid verdict when the response had a
+  trailing brace. → Brace-balanced, string-aware scan.
+- 🐛 **Code/index syntax mis-cited** (`data[2]` → citation 2). → Strip code spans;
+  require citation position. (Residual `[text][2]` markdown-link case documented.)
+- 🐛 `[1 2]` dropped every citation; no abort check before the faithfulness call.
+
+Adjudicated: a parsed empty claim list (an honest "I don't know") is now
+**vacuously faithful** (RAGAS convention) rather than scored 0. Refuted
+(correctly): coercing a checker *exception* into a verdict, the "unsent prompt" on
+the no-sources path, and three others — all intentional or distinguishable on
+inspection.
+
 ---
 
 ## Learnings (reusable across the project)
@@ -209,6 +239,12 @@ contract-violating input.
   unnecessary fusion-algorithm rewrite. Making a skeptic try to *refute* each
   finding — and separating a real bug from a design tradeoff — is what keeps the
   signal high.
+- **In a scorer, silently dropping an item is never neutral.** The faithfulness
+  check divided supported-claims by *surviving* claims, so filtering out a
+  malformed entry shrank the denominator and could only *raise* the score —
+  turning a safety guard into a fail-open one. A scoring function must account for
+  every input it was given; count an ambiguous item in the *safe* direction,
+  never drop it.
 
 ## Status
 
@@ -218,8 +254,8 @@ contract-violating input.
 | 1.1 Postgres + pgvector store | ✅ |
 | 1.2 Ingestion pipeline | ✅ |
 | 1.3 Hybrid retrieval + reranking | ✅ |
-| 1.4 Grounded generation | 🔧 next |
-| 1.5 Evaluation harness | ⬜ |
+| 1.4 Grounded generation | ✅ |
+| 1.5 Evaluation harness | 🔧 next |
 | 1.6 Web app + self-host | ⬜ |
 
 See the [ROADMAP](./ROADMAP.md) for Phases 2 (agentic) and 3 (enterprise).

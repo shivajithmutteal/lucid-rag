@@ -53,3 +53,10 @@ export type { IngestInput, IngestOptions, IngestDeps, IngestResult } from './ing
 
 export { retrieve } from './retrieve';
 export type { RetrieveDeps } from './retrieve';
+
+// ── Grounded generation (Phase 1.4) ──
+
+export { answerQuestion, buildAnswerPrompt, extractCitations, ANSWER_SYSTEM } from './answer';
+export type { AnswerDeps, AnswerOptions } from './answer';
+export { checkFaithfulness, parseClaimVerdicts, FAITHFULNESS_SYSTEM } from './faithfulness';
+export type { FaithfulnessOptions } from './faithfulness';

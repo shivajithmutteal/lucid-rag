@@ -64,7 +64,7 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 
 *Goal: single-tenant, self-hostable, genuinely good retrieval, fully observable. This alone beats most RAG repos.* Delivers **Tier A**.
 
-> **Current position (updated):** Phase **1.3 is complete** — the retrieval engine `retrieve()` in `@lucid-rag/core`: dense + sparse candidates (run concurrently) → min-max normalize + weighted fusion (keyword / semantic / hybrid, blended by `semanticWeight`) → optional cross-encoder rerank → top-k, all recorded in the multi-stage `RetrievalTrace` (dense / sparse / fused / reranked stages, near-misses, per-stage timings). 30 core unit tests, hardened by an adversarial find→verify review (2 confirmed fixes — normalize over hydratable candidates only, snapshot params into the trace; 6 false alarms refuted). **Next up: Phase 1.4** — grounded generation (numbered sources, inline citations, faithfulness check, provider-agnostic streaming).
+> **Current position (updated):** Phase **1.4 is complete** — grounded generation in `@lucid-rag/core`: `answerQuestion()` builds a numbered-source prompt from a retrieval trace, generates (streaming, provider-agnostic), extracts `[n]` inline citations deterministically, and optionally runs a fail-closed faithfulness check (claim decomposition scored against a threshold) — returning an `Answer` with the exact prompt and trace attached. 51 core unit tests, hardened by an adversarial find→verify review (5 confirmed fixes incl. a fail-OPEN in the faithfulness scorer; 5 refuted; 1 split verdict adjudicated). Design + reasoning in `docs/grounded-generation.md`. **Next up: Phase 1.5** — the evaluation harness (RAGAS-style: context precision/recall, faithfulness, answer relevance).
 
 | # | Capability | What it means | Status |
 |---|---|---|---|
@@ -72,8 +72,8 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 | 1.1 | Postgres + pgvector store | Schema + `VectorStore` impl: dense (pgvector) + sparse (full-text) + metadata filter | ✅ done |
 | 1.2 | Ingestion pipeline | Upload/parse → chunk → **contextualize** (LLM situating blurb per chunk) → embed → index | ✅ done |
 | 1.3 | Hybrid retrieval + reranking | Dense + sparse candidates → fuse → **cross-encoder rerank** → top-k, with the full trace | ✅ done |
-| 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ⬜ **next** |
-| 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ⬜ |
+| 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ✅ done |
+| 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ⬜ **next** |
 | 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ⬜ |
 
 ### ⬜ Phase 2 — Intelligence: the "wow"
