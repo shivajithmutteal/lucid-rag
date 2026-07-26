@@ -64,7 +64,7 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 
 *Goal: single-tenant, self-hostable, genuinely good retrieval, fully observable. This alone beats most RAG repos.* Delivers **Tier A**.
 
-> **Current position (updated):** Phase **1.4 is complete** — grounded generation in `@lucid-rag/core`: `answerQuestion()` builds a numbered-source prompt from a retrieval trace, generates (streaming, provider-agnostic), extracts `[n]` inline citations deterministically, and optionally runs a fail-closed faithfulness check (claim decomposition scored against a threshold) — returning an `Answer` with the exact prompt and trace attached. 51 core unit tests, hardened by an adversarial find→verify review (5 confirmed fixes incl. a fail-OPEN in the faithfulness scorer; 5 refuted; 1 split verdict adjudicated). Design + reasoning in `docs/grounded-generation.md`. **Next up: Phase 1.5** — the evaluation harness (RAGAS-style: context precision/recall, faithfulness, answer relevance).
+> **Current position (updated):** Phase **1.5 is complete — this closes out Tier A.** The evaluation harness in `@lucid-rag/core`: `evaluate()` scores samples with RAGAS-style metrics — context precision (rank-aware AP over labels), context recall, faithfulness (reused from 1.4), answer relevance (a question round-trip) — aggregating as the mean over the samples where each metric was actually computed. 63 core unit tests, hardened by an adversarial find→verify review (3 confirmed fixes incl. faithfulness being skipped for source-less answers; 6 refuted). Design + reasoning in `docs/evaluation.md`; every fix logged in `docs/bug-ledger.md`. **Next up: Phase 1.6** — the self-hostable web app (BYO-keys + data upload UI, chat, the trace viewer, `docker compose up` quickstart, e2e verified) — the last piece of Phase 1.
 
 | # | Capability | What it means | Status |
 |---|---|---|---|
@@ -73,8 +73,8 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 | 1.2 | Ingestion pipeline | Upload/parse → chunk → **contextualize** (LLM situating blurb per chunk) → embed → index | ✅ done |
 | 1.3 | Hybrid retrieval + reranking | Dense + sparse candidates → fuse → **cross-encoder rerank** → top-k, with the full trace | ✅ done |
 | 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ✅ done |
-| 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ⬜ **next** |
-| 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ⬜ |
+| 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ✅ done |
+| 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ⬜ **next** |
 
 ### ⬜ Phase 2 — Intelligence: the "wow"
 

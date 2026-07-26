@@ -14,10 +14,11 @@ reference.
 | 1.2 ingestion | 12 | 3 refuted |
 | 1.3 retrieval + rerank | 2 | 6 refuted |
 | 1.4 grounded generation | 5 | 5 refuted, 1 split→adjudicated |
-| **Total** | **20** | **14 refuted, 1 adjudicated** |
+| 1.5 evaluation harness | 3 | 6 refuted |
+| **Total** | **23** | **20 refuted, 1 adjudicated** |
 
-The refuted count is the point: ~40% of raised findings were *not* real bugs.
-Confirming them blindly would have meant rewriting correct code (see §Refuted).
+The refuted count is the point: nearly half of raised findings were *not* real
+bugs. Confirming them blindly would have meant rewriting correct code (see §Refuted).
 
 ---
 
@@ -61,6 +62,16 @@ Confirming them blindly would have meant rewriting correct code (see §Refuted).
 | LR-19 | Low | **Space-separated group `[1 2]`** dropped every citation. | Split on `/[\s,]+/`. |
 | LR-20 | Low | **No abort check** before the second, billable faithfulness LLM call. | `throwIfAborted()` before the checker call. |
 
+## Phase 1.5 — Evaluation harness
+
+| ID | Sev | Issue | Fix |
+|---|---|---|---|
+| LR-21 | **High** | **Faithfulness omitted for source-less answers.** The compute branch was gated on `trace.results.length > 0`, so a confident hallucination with *no* retrieved chunks got no faithfulness score — biasing the aggregate on the highest-risk case. | Drop the gate; `checkFaithfulness` scores empty sources correctly. |
+| LR-22 | Low | **`answerRelevance` regex mangled number-leading questions** (`3.14…` → `14…`, `-5…` → `5…`) — the `\s*` fired on a marker glued to content. | Require a trailing space (`\s+`). |
+| LR-23 | Low | **`faithfulnessThreshold` was inert** — it only affects `report.supported`, which the harness discarded. | Surface the computed report on `EvalResult.answer.faithfulness`. |
+
+---
+
 **Adjudicated (LR-A1):** the reviewers *split* on an empty `{"claims":[]}` verdict
 (one said fail-closed, one said vacuously faithful). Decision: a **successfully
 parsed** empty claim list — an answer that asserts nothing, e.g. an honest "I
@@ -88,6 +99,10 @@ each would have caused an unnecessary rewrite:
   no-sources short-circuit; a fixed checker token budget; and "parse-failure
   indistinguishable from all-unsupported" (they differ — the latter has non-empty
   `unsupportedClaims`).
+- **1.5 (6):** two "`contextPrecision` double-counts duplicate ids" (the pipeline
+  dedups candidate ids at fusion, and average precision is defined over distinct
+  docs); two "`cosineSimilarity` truncates mismatched vectors" (unreachable — all
+  vectors come from one embedder call); and `relevanceQuestions: 0` (out-of-domain).
 
 ## Cross-cutting patterns
 

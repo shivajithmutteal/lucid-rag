@@ -206,6 +206,32 @@ Adjudicated: a parsed empty claim list (an honest "I don't know") is now
 the no-sources path, and three others — all intentional or distinguishable on
 inspection.
 
+## Phase 1.5 — Evaluation harness
+
+`evaluate(samples, produceAnswer, deps, options)` → `EvalReport`. Scores each
+sample with RAGAS-style metrics — context precision (rank-aware AP over labels),
+context recall, faithfulness (reused from 1.4), answer relevance (a question
+round-trip) — and aggregates as the mean over the samples where each metric was
+actually computed. Plan + reasoning in [docs/evaluation.md](docs/evaluation.md).
+This closes out **Tier A**; only 1.6 (the web app) remains in Phase 1.
+
+**Key decisions:** deterministic label-based precision/recall as the core; reuse
+`checkFaithfulness`; RAGAS round-trip for answer relevance; a composable
+`produceAnswer` seam; optional-metric aggregation (never count an absent metric as 0).
+
+**Review caught (3 confirmed, 6 refuted).**
+
+- 🐛 **Faithfulness omitted for source-less answers** — the compute branch was gated
+  on `trace.results.length > 0`, so a confident hallucination with no retrieved
+  chunks got no faithfulness score, biasing the aggregate on the highest-risk case.
+  → Drop the gate; surface the computed report.
+- 🐛 `answerRelevance` chopped number-leading questions (`3.14…` → `14…`) → require a
+  trailing space; `faithfulnessThreshold` was inert → surface the report.
+
+Refuted (correctly): "contextPrecision double-counts duplicate ids" (the pipeline
+dedups at fusion; AP is over distinct docs) and "cosine truncates mismatched
+vectors" (all vectors come from one embedder call) — both unreachable.
+
 ---
 
 ## Learnings (reusable across the project)
@@ -246,6 +272,12 @@ inspection.
   turning a safety guard into a fail-open one. A scoring function must account for
   every input it was given; count an ambiguous item in the *safe* direction,
   never drop it.
+- **Out-of-contract ≠ buggy — check reachability.** Several 1.5 findings were
+  arithmetically true (a pure metric mishandles duplicate ids / mismatched vector
+  lengths) but *unreachable*: retrieval dedups candidate ids at fusion, and every
+  compared vector comes from one embedder call. A pure function needn't defend
+  against inputs the system can't produce — verify by tracing the actual call
+  graph, not the function in isolation.
 
 ## Status
 
@@ -256,7 +288,7 @@ inspection.
 | 1.2 Ingestion pipeline | ✅ |
 | 1.3 Hybrid retrieval + reranking | ✅ |
 | 1.4 Grounded generation | ✅ |
-| 1.5 Evaluation harness | 🔧 next |
-| 1.6 Web app + self-host | ⬜ |
+| 1.5 Evaluation harness | ✅ |
+| 1.6 Web app + self-host | 🔧 next |
 
 See the [ROADMAP](./ROADMAP.md) for Phases 2 (agentic) and 3 (enterprise).

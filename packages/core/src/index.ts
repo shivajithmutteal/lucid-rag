@@ -60,3 +60,9 @@ export { answerQuestion, buildAnswerPrompt, extractCitations, ANSWER_SYSTEM } fr
 export type { AnswerDeps, AnswerOptions } from './answer';
 export { checkFaithfulness, parseClaimVerdicts, FAITHFULNESS_SYSTEM } from './faithfulness';
 export type { FaithfulnessOptions } from './faithfulness';
+
+// ── Evaluation (Phase 1.5) ──
+
+export { evaluate } from './evaluate';
+export type { EvalDeps, EvalOptions, EvalReport } from './evaluate';
+export { cosineSimilarity, contextPrecision, contextRecall, answerRelevance } from './metrics';
