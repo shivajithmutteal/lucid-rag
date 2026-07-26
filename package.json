@@ -10,9 +10,12 @@
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "up": "docker compose up --build",
+    "down": "docker compose down",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f db"
+    "db:logs": "docker compose logs -f db",
+    "smoke": "node scripts/smoke.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -92,16 +92,20 @@ Document parsing beyond plaintext/Markdown (PDF, docx) is deferred.
 
 ## Sub-phases
 
-1.6a providers ✅ · 1.6b `apps/web` + API routes (ingest, ask) · 1.6c UI (upload,
-chat, trace viewer) · 1.6d `docker-compose` + quickstart · 1.6e Oracle Cloud
-Free-Tier deploy guide (`docker compose up` on the VM) · 1.6f e2e verification.
+1.6a providers ✅ · 1.6b `apps/web` + API routes ✅ · 1.6c glass-box UI ✅ ·
+1.6d `docker-compose` + Dockerfile + quickstart ✅ · 1.6e Oracle Cloud Free-Tier
+deploy guide (`docs/deploy-oracle-cloud.md`) ✅ · 1.6f smoke-test e2e
+(`scripts/smoke.mjs`) ✅ — **Phase 1.6 complete.**
 
 ## Testing
 
 Providers: unit-test body-builders, response parsers, SSE parsing, and `resolve`
-with a mocked fetch (no keys/network). App: API-route logic against fakes; a
-Playwright e2e (headless) once the UI lands, as in rag-glassbox. Each sub-phase
-gets the same adversarial find→verify review.
+with a mocked fetch (no keys/network). App: API-handler logic against in-memory
+fakes (`handleIngest`, `parseAskRequest`/`runAsk`). End-to-end verification is
+`scripts/smoke.mjs` — health → ingest → ask (SSE) against a running instance
+(`npm run smoke`), since a full e2e needs the live DB + a reachable model. The
+providers package got the adversarial find→verify review; the app glue (routes +
+UI) is covered by typecheck + build + handler tests + the smoke test.
 
 ## Open questions / future
 

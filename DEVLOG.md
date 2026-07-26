@@ -232,6 +232,34 @@ Refuted (correctly): "contextPrecision double-counts duplicate ids" (the pipelin
 dedups at fusion; AP is over distinct docs) and "cosine truncates mismatched
 vectors" (all vectors come from one embedder call) — both unreachable.
 
+## Phase 1.6 — Web app + self-host
+
+The runnable product: `apps/web` (Next.js 16) wiring the engine + store + a new
+`@lucid-rag/providers` package into upload / ask / trace-viewer, deployed by
+**self-hosting** (`docker compose up`) — no serverless. Plan + reasoning in
+[docs/web-app.md](docs/web-app.md). Six sub-phases:
+
+- **1.6a providers** — one OpenAI-compatible adapter for OpenAI/Voyage/Groq/Gemini/
+  OpenRouter/Ollama (embeddings + SSE generation), resolved from env, local-first
+  default. Reviewed (1 fix: `.env.example` drift; 5 refuted). 15 tests.
+- **1.6b API routes** — `/api/health`, `/api/ingest`, `/api/ask` (SSE). Testable
+  handlers with dependency injection; validation returns a real 400 up front. 6 tests.
+- **1.6c glass-box UI** — `Studio` + `TraceView`: streaming answer, citations,
+  faithfulness, and the full trace (stages, near-misses, timings).
+- **1.6d docker-compose** — multi-stage Dockerfile (Next standalone) + the `app`
+  service + schema auto-init on first request. `docker compose up → localhost:3000`.
+- **1.6e Oracle Cloud** — a step-by-step [free-VM deploy guide](docs/deploy-oracle-cloud.md)
+  (incl. the Oracle iptables gotcha).
+- **1.6f smoke test** — `scripts/smoke.mjs` verifies health → ingest → ask on a live instance.
+
+**Deploy decision, revised with the user:** dropped the earlier "A + B" (which added
+a Vercel + Neon query-only demo) for **A only** — self-host the real product on a free
+Oracle Cloud VM. Vercel can't hold the stateful pgvector DB or long ingestion anyway.
+
+Process note: with ultracode off, the app glue (1.6b–f) leaned on typecheck + build +
+handler tests + the smoke test rather than a full review each; the providers package
+(the one with real external-API surface) still got the adversarial pass.
+
 ---
 
 ## Learnings (reusable across the project)
@@ -289,6 +317,6 @@ vectors" (all vectors come from one embedder call) — both unreachable.
 | 1.3 Hybrid retrieval + reranking | ✅ |
 | 1.4 Grounded generation | ✅ |
 | 1.5 Evaluation harness | ✅ |
-| 1.6 Web app + self-host | 🔧 next |
+| 1.6 Web app + self-host | ✅ |
 
 See the [ROADMAP](./ROADMAP.md) for Phases 2 (agentic) and 3 (enterprise).

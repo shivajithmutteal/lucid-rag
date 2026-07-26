@@ -60,11 +60,11 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 
 ## Phases
 
-### ✅/🔧 Phase 1 — Foundation: "a RAG starter you can see through"  ← **WE ARE HERE**
+### ✅ Phase 1 — Foundation: "a RAG starter you can see through"  — **DONE**
 
 *Goal: single-tenant, self-hostable, genuinely good retrieval, fully observable. This alone beats most RAG repos.* Delivers **Tier A**.
 
-> **Current position (updated):** Phase **1.5 is complete — this closes out Tier A.** The evaluation harness in `@lucid-rag/core`: `evaluate()` scores samples with RAGAS-style metrics — context precision (rank-aware AP over labels), context recall, faithfulness (reused from 1.4), answer relevance (a question round-trip) — aggregating as the mean over the samples where each metric was actually computed. 63 core unit tests, hardened by an adversarial find→verify review (3 confirmed fixes incl. faithfulness being skipped for source-less answers; 6 refuted). Design + reasoning in `docs/evaluation.md`; every fix logged in `docs/bug-ledger.md`. **Next up: Phase 1.6** — the self-hostable web app (BYO-keys + data upload UI, chat, the trace viewer, `docker compose up` quickstart, e2e verified) — the last piece of Phase 1.
+> **Current position (updated):** Phase **1.6 is complete — Phase 1 (Foundation) is DONE.** The self-hostable web app (`apps/web`, Next.js 16): upload / chat / **glass-box trace viewer** over `/api/ingest` + `/api/ask` (SSE), a new `@lucid-rag/providers` package (one OpenAI-compatible adapter for OpenAI/Voyage/Groq/Gemini/OpenRouter/Ollama, local-first default), `docker compose up` self-host with schema auto-init, an [Oracle Cloud Free-Tier deploy guide](./docs/deploy-oracle-cloud.md), and a smoke test. Deploy is **self-host only** (revised with the user — Vercel can't hold the stateful DB + long ingestion). Every phase carries a design doc; all packages typecheck + test green; every reviewed fix is in [`docs/bug-ledger.md`](./docs/bug-ledger.md). **Next up: Phase 2 — Intelligence** (query transformation, parent–child chunking, and the headline **agentic RAG**).
 
 | # | Capability | What it means | Status |
 |---|---|---|---|
@@ -74,9 +74,9 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 | 1.3 | Hybrid retrieval + reranking | Dense + sparse candidates → fuse → **cross-encoder rerank** → top-k, with the full trace | ✅ done |
 | 1.4 | Grounded generation | Numbered sources, **inline citations**, **faithfulness check**, provider-agnostic streaming | ✅ done |
 | 1.5 | Evaluation harness | RAGAS-style metrics: context precision/recall, faithfulness, answer relevance | ✅ done |
-| 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ⬜ **next** |
+| 1.6 | Web app + self-host | BYO-keys + data upload UI, chat, **trace viewer**; `docker compose up` quickstart; e2e verified | ✅ done |
 
-### ⬜ Phase 2 — Intelligence: the "wow"
+### 🔧 Phase 2 — Intelligence: the "wow"  ← **NEXT**
 
 *Goal: go from a fixed pipeline to a system that reasons about retrieval.* Delivers **Tier B**.
 
