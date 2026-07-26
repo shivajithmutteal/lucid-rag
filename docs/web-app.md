@@ -64,6 +64,25 @@ with no network.
 long-lived, so contextualize + embed over many chunks has no serverless timeout
 to fear — the whole point of choosing self-host.
 
+## UI (1.6c)
+
+One client component (`Studio`) over the three routes, plus a `TraceView`. The
+point is to make the trace *visible*:
+
+- **Upload** — paste text or load a `.txt`/`.md` file; set the KB + document ids;
+  optional per-chunk contextualization. POSTs `/api/ingest`.
+- **Ask** — query + mode (hybrid/semantic/keyword) + optional faithfulness check.
+  Consumes the `/api/ask` SSE stream: the answer streams token-by-token, then the
+  citations, faithfulness verdict, and full trace render on `done`.
+- **Trace viewer** — the glass box: per-stage timings, the top-k **results** (with
+  their `[n]` citation numbers and dense/sparse/fused/rerank scores), the
+  **near-misses** just below the cutoff, and collapsible **stage** lists
+  (dense / sparse / fused / reranked).
+
+Client SSE is parsed in `lib/client.ts` (fetch + `ReadableStream`, since
+`EventSource` is GET-only). Styling is a small bespoke light/dark CSS file.
+Document parsing beyond plaintext/Markdown (PDF, docx) is deferred.
+
 ## Config / env
 
 `DATABASE_URL` + provider keys (see `.env.example`), plus:
