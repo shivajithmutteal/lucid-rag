@@ -2,7 +2,8 @@
 
 How this project was built, phase by phase: the decisions, the trade-offs, and
 the bugs an adversarial review caught before they shipped. The [ROADMAP](./ROADMAP.md)
-says *where we're going*; this log records *how we got here and what we learned*.
+says *where we're going*; this log records *how we got here and what we learned*;
+the [Bug Ledger](./docs/bug-ledger.md) is the flat list of every issue caught and fixed.
 
 ## Methodology
 
