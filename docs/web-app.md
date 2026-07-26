@@ -6,35 +6,27 @@ outcomes and the [Bug Ledger](./bug-ledger.md) the fixes. Last piece of Phase 1.
 ## Goal
 
 Make lucid-rag *runnable by a human*: upload data, add keys, chat, and see the
-glass-box trace — delivered two ways (decided with the user):
+glass-box trace — deployed by **self-hosting** the full product (`docker compose
+up`) on a free always-on VM.
 
-- **Path A — self-host (`docker compose up`)**: the real, full-featured product.
-- **Path B — free hosted demo**: a public, query-only showcase (like rag.mutteal.com).
+## Deployment decision (self-host only) and why
 
-## Deployment decision (A + B) and why
+**Chosen (revised with the user): Path A — self-host, no hosted demo.** lucid-rag
+needs a *stateful* Postgres+pgvector DB and a *long-running* ingestion pipeline
+(parse → chunk → LLM-contextualize → embed → index — minutes for a big doc).
+Vercel functions are stateless and time-limited, so a full hosted app doesn't fit
+serverless; rather than ship a stripped-down hosted demo, we run the real thing.
 
-**The serverless problem.** lucid-rag needs a *stateful* Postgres+pgvector DB and
-a *long-running* ingestion pipeline (parse → chunk → LLM-contextualize → embed →
-index — minutes for a big doc). Vercel functions are stateless and time-limited,
-so Vercel can host the UI + short read routes but **not** the DB and **not** live
-ingestion. (This is exactly why rag-glassbox went static/client-side; lucid-rag
-can't.)
+**How.** Everything runs in containers on one machine you control: a pgvector
+container + the Next app container (+ optional Ollama). Ingestion is a normal
+long-lived process — no timeout. **Local-first works** (Ollama + local embeddings,
+no keys, data never leaves the box).
 
-**Path A — self-host.** Everything runs in containers on one machine you control:
-a pgvector container + the Next app container (+ optional Ollama). Ingestion is a
-normal long-lived process — no timeout. Free on your own hardware or a free
-always-on VM (Oracle Cloud Free Tier). **Local-first works here and only here**
-(Ollama + local embeddings, no keys, data never leaves the box).
-
-**Path B — hosted demo.** Ingest a sample corpus **offline, once** (writing vectors
-into a free managed pgvector — **Neon** or **Supabase**); deploy the Next app on
-Vercel in **query-only** mode reading that DB. No live upload → no serverless
-timeout. Generation reuses the free-tier failover chain (Groq → Gemini →
-OpenRouter) already proven in rag-glassbox. This mirrors rag-glassbox's
-"precomputed corpus + hosted read-only demo" pattern, adapted to a real DB.
-
-The two share one codebase; the only differences are **config** (DATABASE_URL +
-provider keys) and a **query-only flag** that hides the upload UI on the demo.
+**Where — free, always-on.** A **free Oracle Cloud Free Tier** VM (Ampere ARM, up
+to 4 cores / 24 GB RAM, always free) comfortably runs the whole stack: `docker
+compose up` on the VM, expose the app port, done. (An earlier "A + B" plan that
+added a Vercel + Neon query-only demo was dropped in favor of shipping only the
+real self-hostable product.)
 
 ## Architecture
 
@@ -66,19 +58,24 @@ Anthropic (`/v1/messages`, different shape) and rerankers (Cohere/Voyage) are
 Adapters take an injectable `fetch` so the request/response logic is unit-testable
 with no network.
 
-## Ingestion & the serverless constraint
+## Ingestion
 
-- **Self-host (A):** `/api/ingest` runs the full pipeline in-request (long-lived
-  server, no timeout).
-- **Demo (B):** a CLI `seed` script runs the pipeline offline against the demo DB;
-  the hosted app never ingests. Query-only mode returns a clear error if upload is
-  attempted.
+`/api/ingest` runs the full pipeline in-request. The self-hosted server is
+long-lived, so contextualize + embed over many chunks has no serverless timeout
+to fear — the whole point of choosing self-host.
 
 ## Config / env
 
 `DATABASE_URL` + provider keys (see `.env.example`), plus:
-- `LUCID_READONLY=true` → query-only (demo) — disables ingest routes + upload UI.
+- `LUCID_READONLY=true` → optional read-only mode (disables the ingest route +
+  upload UI) for a locked-down public self-host instance.
 - Model/dim overrides for each provider.
+
+## Sub-phases
+
+1.6a providers ✅ · 1.6b `apps/web` + API routes (ingest, ask) · 1.6c UI (upload,
+chat, trace viewer) · 1.6d `docker-compose` + quickstart · 1.6e Oracle Cloud
+Free-Tier deploy guide (`docker compose up` on the VM) · 1.6f e2e verification.
 
 ## Testing
 

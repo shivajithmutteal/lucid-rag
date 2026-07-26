@@ -1,0 +1,29 @@
+{
+  "name": "@lucid-rag/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "lucid-rag self-hostable web app: upload, chat, and the glass-box trace viewer.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@lucid-rag/core": "*",
+    "@lucid-rag/providers": "*",
+    "@lucid-rag/store-postgres": "*",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}

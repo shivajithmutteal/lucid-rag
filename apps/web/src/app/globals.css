@@ -1,0 +1,26 @@
+:root {
+  color-scheme: light dark;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 42rem;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
+h1 {
+  font-size: 1.6rem;
+}
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
