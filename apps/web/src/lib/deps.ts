@@ -25,3 +25,17 @@ export function getDeps(env: NodeJS.ProcessEnv = process.env): AppDeps {
   };
   return cached;
 }
+
+let schemaReady: Promise<void> | undefined;
+
+/** Run the store's idempotent schema DDL once per process, so a fresh database
+ * is set up automatically on the first request (no manual migration step). */
+export function ensureSchema(store: PgVectorStore): Promise<void> {
+  if (!schemaReady) {
+    schemaReady = store.init().catch((err) => {
+      schemaReady = undefined; // let a later request retry if this failed
+      throw err;
+    });
+  }
+  return schemaReady;
+}

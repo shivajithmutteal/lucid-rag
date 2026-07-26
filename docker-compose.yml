@@ -1,6 +1,11 @@
-# Self-host storage. `docker compose up -d db` starts Postgres with the pgvector
-# extension available. The app service is added in Phase 1.6 (the web tier); for
-# now this gives the database the rest of the pipeline builds against.
+# Self-host stack. `docker compose up --build` builds and runs the web app plus
+# Postgres (with pgvector). The app creates its schema automatically on first use.
+#
+#   1. cp .env.example .env    # add provider keys, or leave empty for local Ollama
+#   2. docker compose up --build
+#   3. open http://localhost:3000
+#
+# (Database only, for local dev of the packages: `docker compose up -d db`.)
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -19,5 +24,39 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: lucid-rag-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # The db service is reachable at host `db` on the compose network; this
+      # overrides any DATABASE_URL in .env (which points at localhost for dev).
+      DATABASE_URL: postgres://lucid:lucid@db:5432/lucid
+    # Provider keys + model overrides (optional — defaults to local Ollama).
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  # ── Optional: local-first models with Ollama (no API keys, data stays local) ──
+  # Uncomment this service and the volume below, then set in .env:
+  #   OLLAMA_HOST=http://ollama:11434
+  # and pull models once:  docker compose exec ollama ollama pull llama3.2 nomic-embed-text
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: lucid-rag-ollama
+  #   volumes:
+  #     - lucid_ollama:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   restart: unless-stopped
+
 volumes:
   lucid_pgdata:
+  # lucid_ollama:

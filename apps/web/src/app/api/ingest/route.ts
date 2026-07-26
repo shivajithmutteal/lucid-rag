@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getDeps } from '@/lib/deps';
+import { ensureSchema, getDeps } from '@/lib/deps';
 import { HttpError } from '@/lib/http';
 import { handleIngest } from '@/lib/ingest';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const deps = getDeps();
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    await ensureSchema(deps.store);
     const contextualize =
       typeof body === 'object' && body !== null && (body as Record<string, unknown>).contextualize === true;
     const result = await handleIngest(body, deps, { contextualize });

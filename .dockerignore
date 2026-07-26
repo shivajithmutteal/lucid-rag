@@ -1,0 +1,9 @@
+# keep the build context small and never ship secrets or build output
+**/node_modules
+**/.next
+**/dist
+.git
+.env
+.env.*
+!.env.example
+*.log

@@ -19,6 +19,38 @@ The production sibling of [`rag-glassbox`](https://github.com/) (the teaching de
 - **Core:** a zero-dependency, provider-agnostic RAG engine (`packages/core`).
 - **App:** a Next.js self-hostable web app (`apps/web`) — data upload, key management, chat, and the trace viewer.
 
+## Quickstart (self-host)
+
+```bash
+git clone https://github.com/shivajithmutteal/lucid-rag
+cd lucid-rag
+cp .env.example .env          # add a provider key (e.g. GROQ_API_KEY, free tier) — or leave empty for local Ollama
+docker compose up --build     # builds the web app + starts Postgres/pgvector
+```
+
+Open **http://localhost:3000** — upload a document (paste text or a `.txt`/`.md`
+file), ask a question, and watch the answer stream in with its full glass-box trace.
+The database schema is created automatically on first use.
+
+- **Providers** resolve from env (first key wins), defaulting to **local Ollama** —
+  no key, no data leaving your machine. See [`.env.example`](./.env.example). For a
+  local-first run, uncomment the `ollama` service in `docker-compose.yml` and set
+  `OLLAMA_HOST=http://ollama:11434`.
+- **Read-only** public instance: set `LUCID_READONLY=true` to disable uploads.
+- **Deploy** on any Docker host — including a **free Oracle Cloud Free Tier** VM
+  (see [`docs/web-app.md`](./docs/web-app.md)).
+
+### Develop (without Docker)
+
+```bash
+docker compose up -d db            # just the database
+npm install
+npm test --workspaces --if-present # the package test suites
+npm run dev -w @lucid-rag/web      # http://localhost:3000 (DATABASE_URL from .env)
+```
+
 ## Status
 
-**Phase 1 (foundation) in progress.** See the [ROADMAP](./ROADMAP.md) for the tier-by-tier plan and current status. Quickstart instructions land with the web tier (Phase 1.6).
+**Phase 1 (foundation) — Tier A complete; the web app (1.6) is landing.** See the
+[ROADMAP](./ROADMAP.md) for the plan, the [DEVLOG](./DEVLOG.md) for how it was built,
+and the [Bug Ledger](./docs/bug-ledger.md) for every reviewed fix.

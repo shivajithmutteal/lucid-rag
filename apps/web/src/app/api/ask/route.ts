@@ -1,4 +1,4 @@
-import { getDeps } from '@/lib/deps';
+import { ensureSchema, getDeps } from '@/lib/deps';
 import { parseAskRequest, runAsk } from '@/lib/ask';
 import { HttpError } from '@/lib/http';
 
@@ -31,6 +31,12 @@ export async function POST(req: Request) {
     request = parseAskRequest(body);
   } catch (err) {
     return json({ error: (err as Error).message }, err instanceof HttpError ? err.status : 400);
+  }
+
+  try {
+    await ensureSchema(deps.store);
+  } catch (err) {
+    return json({ error: (err as Error).message }, 500);
   }
 
   const encoder = new TextEncoder();
