@@ -15,7 +15,8 @@ reference.
 | 1.3 retrieval + rerank | 2 | 6 refuted |
 | 1.4 grounded generation | 5 | 5 refuted, 1 split→adjudicated |
 | 1.5 evaluation harness | 3 | 6 refuted |
-| **Total** | **23** | **20 refuted, 1 adjudicated** |
+| 1.6a provider adapters | 1 | 5 refuted |
+| **Total** | **24** | **25 refuted, 1 adjudicated** |
 
 The refuted count is the point: nearly half of raised findings were *not* real
 bugs. Confirming them blindly would have meant rewriting correct code (see §Refuted).
@@ -79,6 +80,12 @@ don't know" — is **vacuously faithful (score 1)**; only *unparseable* output f
 closed. Rationale: a claimless answer can't contradict the sources (RAGAS
 convention), and we already trust the checker's per-claim verdicts.
 
+## Phase 1.6a — Provider adapters
+
+| ID | Sev | Issue | Fix |
+|---|---|---|---|
+| LR-24 | Med | **`.env.example` out of sync with `resolveGenerator`.** It advertised Anthropic as the #1 generation provider (unwired) and omitted the Groq/Gemini/OpenRouter keys the code actually honors — so a self-hoster who set only `ANTHROPIC_API_KEY` silently fell through to Ollama. | Rewrite the generation block to the real precedence (OpenAI → Groq → Gemini → OpenRouter → Ollama); note Anthropic is deferred. |
+
 ---
 
 ## Refuted (the review working the other way)
@@ -103,6 +110,12 @@ each would have caused an unnecessary rewrite:
   dedups candidate ids at fusion, and average precision is defined over distinct
   docs); two "`cosineSimilarity` truncates mismatched vectors" (unreachable — all
   vectors come from one embedder call); and `relevanceQuestions: 0` (out-of-domain).
+- **1.6a (5):** embeddings length-vs-dims (the pgvector column is *unconstrained*,
+  so a length mismatch neither throws nor corrupts retrieval); two "SSE drops an
+  unterminated final line" (real providers newline-terminate + `[DONE]`; the SSE
+  spec says discard an incomplete final event); a reader/socket "leak" on `[DONE]`
+  (the natural stream end — undici drains it); and a non-integer `EMBED_DIMS`
+  (never sent to the provider; Postgres rejects it downstream).
 
 ## Cross-cutting patterns
 
