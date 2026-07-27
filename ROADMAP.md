@@ -78,7 +78,7 @@ The *techniques* are grouped by ROI; the *phases* below schedule them.
 
 ### 🔧 Phase 2 — Intelligence: the "wow"  ← **NEXT**
 
-*Goal: go from a fixed pipeline to a system that reasons about retrieval.* Delivers **Tier B**.
+*Goal: go from a fixed pipeline to a system that reasons about retrieval.* Delivers **Tier B**. **Plan + near-term backlog: [docs/next-steps.md](./docs/next-steps.md).**
 
 - **Query transformation** — rewriting, HyDE (hypothetical-document embeddings), and sub-question decomposition for complex questions.
 - **Parent–child / small-to-big chunking** — embed small chunks for precision, return their larger parent for context.
